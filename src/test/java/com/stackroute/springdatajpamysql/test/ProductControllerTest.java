@@ -1,5 +1,6 @@
-package com.stackroute.springdatajpamysql.controller;
+package com.stackroute.springdatajpamysql.test;
 
+import com.stackroute.springdatajpamysql.controller.ProductController;
 import com.stackroute.springdatajpamysql.entity.Product;
 import com.stackroute.springdatajpamysql.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ProductControllerTest {
@@ -91,6 +92,38 @@ public class ProductControllerTest {
         verify(productService, times(1)).deleteProduct(productId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Product Deleted", response.getBody());
+    }
+
+    @Test
+    public void testGetAllProductsHavingPriceLessThan() {
+        // Mocking data
+        double price = 100.0;
+        Product product1 = new Product(1L, "Product1", 90.0);
+        Product product2 = new Product(2L, "Product2", 110.0);
+        List<Product> productList = Arrays.asList(product1, product2);
+
+        // Mocking the service method
+        when(productService.getAllProductsHavingPriceLessThan(price)).thenReturn(productList);
+
+        // Calling the controller method
+        ResponseEntity<?> responseEntity = productController.getAllProductsHavingPriceLessThan(price);
+
+        // Verifying the response status
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        // Verifying the response body
+        assertNotNull(responseEntity.getBody());
+        assertTrue(responseEntity.getBody() instanceof List);
+        List<Product> result = (List<Product>) responseEntity.getBody();
+        assertEquals(2, result.size());
+        assertEquals("Product1", result.get(0).getName());
+        assertEquals(90.0, result.get(0).getPrice());
+        assertEquals("Product2", result.get(1).getName());
+        assertEquals(110.0, result.get(1).getPrice());
+
+        // Verifying that the service method was called
+        verify(productService, times(1)).getAllProductsHavingPriceLessThan(price);
     }
 
     private Product someProduct() {
